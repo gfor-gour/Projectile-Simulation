@@ -72,6 +72,48 @@ export default function Canvas({projectileParams, simulationState, missileImageU
         ctx.fill()
       }
 
+    // Draw velocity vector
+    ctx.save()
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(x, height - y)
+    ctx.lineTo(x + vx * 5, height - (y + vy * 5)) // scale for visibility
+    ctx.stroke()
+
+    // Draw Vx component
+    ctx.strokeStyle = 'green'
+    ctx.beginPath()
+    ctx.moveTo(x, height - y)
+    ctx.lineTo(x + vx * 5, height - y)
+    ctx.stroke()
+
+    // Draw Vy component
+    ctx.strokeStyle = 'orange'
+    ctx.beginPath()
+    ctx.moveTo(x + vx * 5, height - y)
+    ctx.lineTo(x + vx * 5, height - (y + vy * 5))
+    ctx.stroke()
+    ctx.restore()
+
+    // Draw labels for velocity components
+    ctx.save()
+    ctx.fillStyle = 'black'
+    ctx.font = '16px Arial'
+    ctx.fillText('v', x + vx * 5 + 10, height - (y + vy * 5))
+    ctx.fillStyle = 'green'
+    ctx.fillText('vx', x + vx * 5 + 10, height - y)
+    ctx.fillStyle = 'orange'
+    ctx.fillText('vy', x + vx * 5 + 10, height - (y + vy * 5 / 2))
+    ctx.restore()
+
+    // Draw position label
+    ctx.save()
+    ctx.fillStyle = 'black'
+    ctx.font = '14px Arial'
+    ctx.fillText(`x: ${x.toFixed(1)} m, y: ${y.toFixed(1)} m`, x + 10, height - y - 10)
+    ctx.restore()
+
 
       requestAnimationFrame(drawFrame)
     }
