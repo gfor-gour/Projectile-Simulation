@@ -1,17 +1,20 @@
-// Parameters for the projectile simulation
 export interface ProjectileParams {
-  initialVelocity: number;
-  angle: number; // in degrees
-  mass: number;
-  airResistance: boolean;
-  dragCoefficient?: number;
+  initialVelocity: number
+  angle: number // degrees
+  mass: number
+  airResistance: boolean
+  dragCoefficient?: number
 }
 
-// Physics constants and simulation state
+export interface Vector2D {
+  x: number
+  y: number
+}
+
 export interface SimulationState {
-  position: { x: number; y: number };
-  velocity: { x: number; y: number };
-  acceleration: { x: number; y: number };
-  time: number;
-  trajectory: Array<{ x: number; y: number; t: number }>;
+  position: Vector2D
+  velocity: Vector2D
+  acceleration: Vector2D
+  time: number
+  trajectory: Array<{ x: number; y: number; t: number }>
 }

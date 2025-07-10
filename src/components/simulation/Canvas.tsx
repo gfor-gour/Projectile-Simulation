@@ -1,0 +1,92 @@
+'use client'
+import { useEffect, useRef } from 'react'
+import { ProjectileParams, SimulationState } from '@/types/simulation'
+
+interface CanvasProps {
+  simulationState: SimulationState
+  projectileParams: ProjectileParams
+  missileImageUrl?: string
+}
+
+export default function Canvas({projectileParams, simulationState, missileImageUrl }: CanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const imageRef = useRef<HTMLImageElement | null>(null)
+
+  // Load missile image
+  useEffect(() => {
+    if (missileImageUrl) {
+      const img = new Image()
+      img.src = missileImageUrl
+      img.onload = () => (imageRef.current = img)
+    }
+  }, [missileImageUrl])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const width = canvas.width
+    const height = canvas.height
+
+    const drawFrame = () => {
+      ctx.clearRect(0, 0, width, height)
+
+      // Draw the trajectory path
+      ctx.beginPath()
+      ctx.moveTo(
+        simulationState.trajectory[0]?.x ?? 0,
+        height - (simulationState.trajectory[0]?.y ?? 0)
+      )
+
+      simulationState.trajectory.forEach(({ x, y }) => {
+        ctx.lineTo(x, height - y)
+      })
+
+      ctx.strokeStyle = 'gray'
+      ctx.lineWidth = 4
+      ctx.stroke()
+
+      // Missile state
+      const { x, y } = simulationState.position
+      const { x: vx, y: vy } = simulationState.velocity
+      const size = 30
+
+      // Calculate rotation angle
+      let angle = (projectileParams.angle * Math.PI) / 180 // fallback = initial angle
+      if (vx !== 0 || vy !== 0) {
+        angle = Math.atan2(-vy, vx) // canvas Y is flipped
+      }
+
+      if (imageRef.current) {
+        ctx.save()
+        ctx.translate(x, height - y)
+        ctx.rotate(angle)
+        ctx.drawImage(imageRef.current, -size / 2, -size / 2, size, size)
+        ctx.restore()
+      } else {
+        ctx.fillStyle = 'red'
+        ctx.beginPath()
+        ctx.arc(x, height - y, size / 2, 0, 2 * Math.PI)
+        ctx.fill()
+      }
+
+
+      requestAnimationFrame(drawFrame)
+    }
+
+    requestAnimationFrame(drawFrame)
+  }, [simulationState])
+
+  return (
+    <div className="w-full h-[500px]  border-black border-4 rounded-md overflow-hidden">
+      <canvas
+        ref={canvasRef}
+        width={1000}
+        height={500}
+        className="w-full h-full bg-gray-100"
+      />
+    </div>
+  )
+}
