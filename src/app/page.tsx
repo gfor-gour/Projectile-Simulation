@@ -68,15 +68,32 @@ export default function HomePage() {
         <InputField label="Mass" name="mass" value={formValues.mass} onChange={handleChange} />
         <InputField label="Drag Coefficient" name="dragCoefficient" value={formValues.dragCoefficient} onChange={handleChange} />
         <InputField label="Wind Speed" name="windSpeed" value={formValues.windSpeed} onChange={handleChange} />
-        <InputField label="Wind Direction" name="windDirection" value={formValues.windDirection} onChange={handleChange} />
+        <div className="flex flex-col">
+          <label htmlFor="windDirection" className="text-sm font-medium">Wind Direction</label>
+          <select
+        id="windDirection"
+        name="windDirection"
+        value={formValues.windDirection}
+        onChange={e =>
+          setFormValues(prev => ({
+            ...prev,
+            windDirection: parseFloat(e.target.value),
+          }))
+        }
+        className="border rounded px-2 py-1"
+          >
+        <option value={0}>Left to Right</option>
+        <option value={180}>Right to Left </option>
+          </select>
+        </div>
         <div className="flex items-center gap-2 col-span-2 md:col-span-1">
           <label htmlFor="airResistance" className="text-sm font-medium">Air Resistance</label>
           <input
-            type="checkbox"
-            id="airResistance"
-            name="airResistance"
-            checked={formValues.airResistance}
-            onChange={handleChange}
+        type="checkbox"
+        id="airResistance"
+        name="airResistance"
+        checked={formValues.airResistance}
+        onChange={handleChange}
           />
         </div>
       </div>
