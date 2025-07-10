@@ -4,7 +4,10 @@ export interface ProjectileParams {
   mass: number
   airResistance: boolean
   dragCoefficient?: number
+  windSpeed?: number         // in m/s
+  windDirection?: number     // in degrees, 0 = right, 180 = left
 }
+
 
 export interface Vector2D {
   x: number

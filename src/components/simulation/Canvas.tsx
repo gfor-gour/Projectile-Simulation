@@ -57,7 +57,7 @@ export default function Canvas({projectileParams, simulationState, missileImageU
       ctx.save()
       ctx.fillStyle = '#888'
       ctx.font = '12px Arial'
-      ctx.fillText(`${gx / 10}m`, gx + 2, height - 5)
+      ctx.fillText(`${gx / 1}m`, gx + 2, height - 5)
       ctx.restore()
     }
 
@@ -137,11 +137,11 @@ export default function Canvas({projectileParams, simulationState, missileImageU
     ctx.save()
     ctx.fillStyle = 'black'
     ctx.font = '16px Arial'
-    ctx.fillText('v', x + vx * 5 + 10, height - (y + vy * 5))
+    ctx.fillText('v', x + vx * 2 + 10, height - (y + vy * 2))
     ctx.fillStyle = 'green'
-    ctx.fillText('vx', x + vx * 5 + 10, height - y)
+    ctx.fillText('vx', x + vx * 2 + 10, height - y)
     ctx.fillStyle = 'orange'
-    ctx.fillText('vy', x + vx * 5 + 10, height - (y + vy * 5 / 2))
+    ctx.fillText('vy', x + vx * 2 + 10, height - (y + vy * 5 / 2))
     ctx.restore()
 
     // Draw position label
@@ -150,6 +150,13 @@ export default function Canvas({projectileParams, simulationState, missileImageU
     ctx.font = '14px Arial'
     ctx.fillStyle = 'white'
     ctx.fillText(`x: ${x.toFixed(1)} m, y: ${y.toFixed(1)} m`, x + 10, height - y - 10)
+    ctx.restore()
+     // Draw velocity label
+    ctx.save()
+    ctx.fillStyle = 'white'
+    ctx.font = '14px Arial'
+    const v = Math.sqrt(vx * vx + vy * vy)
+    ctx.fillText(`Vx: ${vx.toFixed(1)} m/s, Vy: ${vy.toFixed(1)} m/s, V: ${v.toFixed(1)} m/s`, x + 10, height - y - 30)
     ctx.restore()
 
 

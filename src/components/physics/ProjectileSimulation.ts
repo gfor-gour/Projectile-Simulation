@@ -3,14 +3,37 @@ import { ProjectileParams, SimulationState, Vector2D } from '@/types/simulation'
 const GRAVITY = 9.81
 const TIME_STEP = 0.016 // ~60fps
 
-// Optional drag formula: F_d = 0.5 * Cd * A * ρ * v²
-const getDragForce = (velocity: Vector2D, dragCoeff: number, mass: number): Vector2D => {
-  const speed = Math.sqrt(velocity.x ** 2 + velocity.y ** 2)
+const toRadians = (deg: number) => (deg * Math.PI) / 180
+
+const getDragForce = (
+  velocity: Vector2D,
+  dragCoeff: number,
+  mass: number,
+  windSpeed = 0,
+  windDirection = 0
+): Vector2D => {
+  const windRad = toRadians(windDirection)
+  const windVector: Vector2D = {
+    x: windSpeed * Math.cos(windRad),
+    y: windSpeed * Math.sin(windRad),
+  }
+
+  // Relative velocity (projectile velocity - wind velocity)
+  const relativeVelocity = {
+    x: velocity.x - windVector.x,
+    y: velocity.y - windVector.y,
+  }
+
+  const speed = Math.sqrt(relativeVelocity.x ** 2 + relativeVelocity.y ** 2)
+  if (speed === 0) return { x: 0, y: 0 }
+
   const dragMagnitude = dragCoeff * speed * speed
-  const dragX = -dragMagnitude * (velocity.x / speed)
-  const dragY = -dragMagnitude * (velocity.y / speed)
-  return { x: dragX / mass, y: dragY / mass }
+  return {
+    x: (-dragMagnitude * relativeVelocity.x) / (speed * mass),
+    y: (-dragMagnitude * relativeVelocity.y) / (speed * mass),
+  }
 }
+
 
 export function simulateNextStep(
   state: SimulationState,
@@ -21,7 +44,13 @@ export function simulateNextStep(
   let acceleration: Vector2D = { x: 0, y: -GRAVITY }
 
   if (params.airResistance && params.dragCoefficient) {
-    const drag = getDragForce(velocity, params.dragCoefficient, params.mass)
+    const drag = getDragForce(
+      velocity,
+      params.dragCoefficient,
+      params.mass,
+      params.windSpeed,
+      params.windDirection
+    )
     acceleration.x += drag.x
     acceleration.y += drag.y
   }
