@@ -73,7 +73,7 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr_300px] gap-6 px-6 pb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_200px] gap-6 px-6 pb-6">
         {/* Controls Panel */}
         <Card className="bg-slate-800 border-slate-700">
           <CardHeader>
@@ -89,7 +89,7 @@ export default function HomePage() {
               <Slider
                 value={[formValues.initialVelocity]}
                 onValueChange={(value) => handleSliderChange("initialVelocity", value)}
-                max={50}
+                max={1000}
                 min={1}
                 step={1}
                 className="w-full"
@@ -121,12 +121,75 @@ export default function HomePage() {
               <Slider
                 value={[formValues.mass]}
                 onValueChange={(value) => handleSliderChange("mass", value)}
-                max={10}
+                max={200}
                 min={0.1}
                 step={0.1}
                 className="w-full"
               />
             </div>
+            {formValues.airResistance && (
+              <>
+                {/* Drag Coefficient */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-white font-medium">Drag Coefficient</label>
+                    <span className="text-white">{formValues.dragCoefficient}</span>
+                  </div>
+                  <Slider
+                    value={[formValues.dragCoefficient]}
+                    onValueChange={(value) => handleSliderChange("dragCoefficient", value)}
+                    max={1}
+                    min={0.01}
+                    step={0.01}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Wind Speed */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-white font-medium">Wind Speed</label>
+                    <span className="text-white">{formValues.windSpeed} m/s</span>
+                  </div>
+                  <Slider
+                    value={[formValues.windSpeed]}
+                    onValueChange={(value) => handleSliderChange("windSpeed", value)}
+                    max={500}
+                    min={0}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Wind Direction */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-white font-medium">Wind Direction</label>
+                    <span className="text-white">
+                      {formValues.windDirection === 0
+                        ? "Left to Right (0°)"
+                        : "Right to Left (180°)"}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={formValues.windDirection === 0 ? "default" : "outline"}
+                      className="w-1/2"
+                      onClick={() => handleSliderChange("windDirection", [0])}
+                    >
+                      Left to Right
+                    </Button>
+                    <Button
+                      variant={formValues.windDirection === 180 ? "default" : "outline"}
+                      className="w-1/2"
+                      onClick={() => handleSliderChange("windDirection", [180])}
+                    >
+                      Right to Left
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Air Resistance */}
             <div className="flex justify-between items-center">
@@ -137,7 +200,7 @@ export default function HomePage() {
             {/* Launch Button */}
             <Button
               onClick={startState ? handleStop : handleLaunch}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 text-lg"
+              className="w-full bg-primary text-white font-semibold py-3 text-lg"
             >
               {startState ? "Stop" : "Launch"}
             </Button>
@@ -145,9 +208,9 @@ export default function HomePage() {
         </Card>
 
         {/* Simulation Canvas */}
-        <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+       
           <Canvas simulationState={simulationState} projectileParams={params} missileImageUrl="/torpedo.png" />
-        </div>
+    
 
         {/* Results Panel */}
         <Card className="bg-slate-800 border-slate-700">
