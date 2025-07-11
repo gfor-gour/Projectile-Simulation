@@ -1,71 +1,60 @@
-'use client'
-import { useEffect, useRef, useState } from 'react'
-import { ProjectileParams, SimulationState } from '@/types/simulation'
-import { simulateNextStep } from '@/components/physics/ProjectileSimulation'
+"use client"
 
-const getInitialState = (params: ProjectileParams): SimulationState => {
-    const angleRad = (params.angle * Math.PI) / 180
-    const vX = params.initialVelocity * Math.cos(angleRad)
-    const vY = params.initialVelocity * Math.sin(angleRad)
+import { useState, useRef, useEffect } from "react"
 
-    return {
-        position: { x: 0, y: 0 },
-        velocity: { x: vX, y: vY },
-        acceleration: { x: 0, y: -9.81 },
-        time: 0,
-        trajectory: [{ x: 0, y: 0, t: 0 }],
-    }
-}
+export const useSimulation = () => {
+  const [simulationState, setSimulationState] = useState({ running: false, time: 0 })
+  const [params, setParams] = useState({
+    initialVelocity: 20,
+    angle: 45,
+    mass: 1,
+    airResistance: false,
+    dragCoefficient: 0.02,
+    windSpeed: 0,
+    windDirection: 0,
+  })
 
-export function useSimulation() {
-    const [params, setParams] = useState<ProjectileParams>(
-        {
-        initialVelocity: 80,
-        angle: 50,
-        mass: 10,
-        airResistance: true,
-        dragCoefficient: 0.02,
-        windSpeed: 50,
-        windDirection: 180,    // e.g., headwind from right to left
-    }
-)
+  const animationFrameId = useRef<number | null>(null)
 
-    const updateParams = (newParams: Partial<ProjectileParams>) => {
-        setParams(prev => ({ ...prev, ...newParams }))
+  const startSimulation = () => {
+    setSimulationState({ running: true, time: 0 })
+    // Mock simulation logic - replace with actual physics calculations
+    const simulate = (startTime: number) => {
+      animationFrameId.current = requestAnimationFrame((currentTime) => {
+        const elapsedTime = (currentTime - startTime) / 1000 // Convert to seconds
+        setSimulationState((prevState) => ({ ...prevState, time: elapsedTime }))
+        simulate(currentTime) // Continue the animation loop
+      })
     }
 
-    const [simulationState, setSimulationState] = useState<SimulationState>(() =>
-        getInitialState(params)
-    )
+    animationFrameId.current = requestAnimationFrame(simulate)
+  }
 
-    const animationRef = useRef<number | undefined>(undefined)
-
-    const startSimulation = () => {
-        const loop = () => {
-            setSimulationState((prev) => {
-                if (prev.position.y < 0 && prev.time > 0.3) return prev
-                return simulateNextStep(prev, params)
-            })
-            animationRef.current = requestAnimationFrame(loop)
-        }
-        cancelAnimationFrame(animationRef.current!)
-        setSimulationState(getInitialState(params))
-        animationRef.current = requestAnimationFrame(loop)
+  const stopSimulation = () => {
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current)
+      animationFrameId.current = null
     }
+    setSimulationState({ running: false, time: 0 })
+  }
 
-    const stopSimulation = () => {
-        cancelAnimationFrame(animationRef.current!)
+  const updateParams = (newParams: any) => {
+    setParams(newParams)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current)
+      }
     }
+  }, [])
 
-    useEffect(() => {
-        return () => cancelAnimationFrame(animationRef.current!)
-    }, [])
-
-    return {
-        simulationState,
-        params,
-        updateParams,
-        startSimulation,
-        stopSimulation,
-    }
+  return {
+    simulationState,
+    startSimulation,
+    stopSimulation,
+    updateParams,
+    params,
+  }
 }
