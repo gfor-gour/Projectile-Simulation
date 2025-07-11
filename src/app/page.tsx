@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { LiaRocketSolid } from "react-icons/lia";
+import { TbRocketOff } from "react-icons/tb";
 
 export default function HomePage() {
   const { simulationState, startSimulation, stopSimulation, updateParams, params } = useSimulation()
@@ -69,7 +71,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-900 text-white">
       {/* Header */}
       <div className="text-center py-8">
-        <h1 className="text-4xl font-bold text-white">Simulating Projectile Motion (with Optional Air Resistance)</h1>
+        {/* <h1 className="text-4xl font-bold text-white">Simulating Projectile Motion (with Optional Air Resistance)</h1> */}
       </div>
 
       {/* Main Content */}
@@ -202,6 +204,8 @@ export default function HomePage() {
               onClick={startState ? handleStop : handleLaunch}
               className="w-full bg-primary text-white font-semibold py-3 text-lg"
             >
+              
+               {startState ? <TbRocketOff/> : <LiaRocketSolid/> }
               {startState ? "Stop" : "Launch"}
             </Button>
           </CardContent>

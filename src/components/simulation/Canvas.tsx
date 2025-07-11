@@ -13,8 +13,8 @@ export default function Canvas({ projectileParams, simulationState, missileImage
     const dynamicCanvasRef = useRef<HTMLCanvasElement>(null)
     const imageRef = useRef<HTMLImageElement | null>(null)
 
-    const width = 1000
-    const height = 500
+    const width = 1200
+    const height = 600
     const missileSize = 35
 
     // Load missile image
@@ -151,7 +151,7 @@ export default function Canvas({ projectileParams, simulationState, missileImage
                     ctx.strokeStyle = 'priamry'
                     ctx.lineWidth = 2
                     ctx.beginPath()
-                    ctx.moveTo(x+15, height - maxPoint.y)
+                    ctx.moveTo(x+20, height - maxPoint.y)
                     ctx.lineTo(width, height - maxPoint.y)
                     ctx.stroke()
                     ctx.setLineDash([])
@@ -172,7 +172,7 @@ export default function Canvas({ projectileParams, simulationState, missileImage
 
             // HUD panel
             const v = Math.sqrt(vx ** 2 + vy ** 2)
-            const panelX = 700
+            const panelX = 900
             const panelY = 20
 
             ctx.save()
