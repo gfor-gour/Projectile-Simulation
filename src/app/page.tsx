@@ -33,7 +33,7 @@ export default function HomePage() {
     setFormValues((prev) => ({
       ...prev,
       [name]: value[0],
-    }))
+    })) 
   }
 
   const handleSwitchChange = (checked: boolean) => {
