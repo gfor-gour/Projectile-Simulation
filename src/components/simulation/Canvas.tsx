@@ -6,9 +6,11 @@ interface CanvasProps {
     simulationState: SimulationState
     projectileParams: ProjectileParams
     missileImageUrl?: string
+    maxWorldHeight: number
+    maxWorldRange: number
 }
 
-export default function Canvas({ projectileParams, simulationState, missileImageUrl }: CanvasProps) {
+export default function Canvas({ projectileParams, simulationState, missileImageUrl, maxWorldHeight, maxWorldRange }: CanvasProps) {
     const staticCanvasRef = useRef<HTMLCanvasElement>(null)
     const dynamicCanvasRef = useRef<HTMLCanvasElement>(null)
     const imageRef = useRef<HTMLImageElement | null>(null)
@@ -26,6 +28,10 @@ export default function Canvas({ projectileParams, simulationState, missileImage
         }
     }, [missileImageUrl])
 
+    // Dynamic scaling
+    const scaleX = width / maxWorldRange;
+    const scaleY = height / maxWorldHeight;
+
     // Draw static grid and trajectory
     useEffect(() => {
         const canvas = staticCanvasRef.current
@@ -40,45 +46,50 @@ export default function Canvas({ projectileParams, simulationState, missileImage
         ctx.fillStyle = bgGradient
         ctx.fillRect(0, 0, width, height)
 
-        // Grid lines
+
+        // Grid lines (every 100m in world coordinates)
         ctx.strokeStyle = '#334155' // slate-700
         ctx.lineWidth = 1
         ctx.setLineDash([2, 6])
         ctx.font = '12px Inter'
         ctx.fillStyle = '#94a3b8' // slate-400
 
-        for (let gx = 0; gx <= width; gx += 100) {
+        for (let gx = 0; gx <= maxWorldRange; gx += 100) {
+            const sx = gx * scaleX;
             ctx.beginPath()
-            ctx.moveTo(gx, 0)
-            ctx.lineTo(gx, height)
+            ctx.moveTo(sx, 0)
+            ctx.lineTo(sx, height)
             ctx.stroke()
-            ctx.fillText(`${gx}m`, gx + 2, height - 5)
+            ctx.fillText(`${gx}m`, sx + 2, height - 5)
         }
 
-        for (let gy = 0; gy <= height; gy += 100) {
+        for (let gy = 0; gy <= maxWorldHeight; gy += 100) {
+            const sy = height - gy * scaleY;
             ctx.beginPath()
-            ctx.moveTo(0, gy)
-            ctx.lineTo(width, gy)
+            ctx.moveTo(0, sy)
+            ctx.lineTo(width, sy)
             ctx.stroke()
-            ctx.fillText(`${height - gy}m`, 2, gy - 2)
+            ctx.fillText(`${gy}m`, 2, sy - 2)
         }
 
         ctx.setLineDash([])
 
         // Trajectory
         ctx.beginPath()
-        ctx.moveTo(
-            simulationState.trajectory[0]?.x ?? 0,
-            height - (simulationState.trajectory[0]?.y ?? 0)
-        )
-        simulationState.trajectory.forEach(({ x, y }) => {
-            ctx.lineTo(x, height - y)
-        })
+        if (simulationState.trajectory.length > 0) {
+            ctx.moveTo(
+                simulationState.trajectory[0].x * scaleX,
+                height - simulationState.trajectory[0].y * scaleY
+            )
+            simulationState.trajectory.forEach(({ x, y }) => {
+                ctx.lineTo(x * scaleX, height - y * scaleY)
+            })
+        }
 
         ctx.strokeStyle = '#facc15' // yellow-400
         ctx.lineWidth = 3
         ctx.stroke()
-    }, [simulationState.trajectory])
+    }, [simulationState.trajectory, maxWorldRange, maxWorldHeight, scaleX, scaleY])
 
     // Animate missile
     useEffect(() => {
@@ -101,7 +112,7 @@ export default function Canvas({ projectileParams, simulationState, missileImage
             // Missile
             if (imageRef.current) {
                 ctx.save()
-                ctx.translate(x, height - y)
+                ctx.translate(x * scaleX, height - y * scaleY)
                 ctx.rotate(angle)
                 ctx.shadowColor = '#facc15'
                 ctx.shadowBlur = 8
@@ -110,7 +121,7 @@ export default function Canvas({ projectileParams, simulationState, missileImage
             } else {
                 ctx.fillStyle = '#f87171' // red-400
                 ctx.beginPath()
-                ctx.arc(x, height - y, missileSize / 2, 0, 2 * Math.PI)
+                ctx.arc(x * scaleX, height - y * scaleY, missileSize / 2, 0, 2 * Math.PI)
                 ctx.fill()
             }
 
@@ -118,25 +129,18 @@ export default function Canvas({ projectileParams, simulationState, missileImage
             ctx.save()
             ctx.lineWidth = 2
 
-            // V (red)
-            // ctx.strokeStyle = '#f43f5e' // rose-500
-            // ctx.beginPath()
-            // ctx.moveTo(x, height - y)
-            // ctx.lineTo(x + vx * 2, height - (y + vy * 2))
-            // ctx.stroke()
-
             // Vx (green)
             ctx.strokeStyle = '#4ade80' // green-400
             ctx.beginPath()
-            ctx.moveTo(x, height - y+15)
-            ctx.lineTo(x, height)
+            ctx.moveTo(x * scaleX, height - y * scaleY + 15)
+            ctx.lineTo(x * scaleX, height)
             ctx.stroke()
 
             // Vy (blue)
             ctx.strokeStyle = '#60a5fa' // blue 
             ctx.beginPath()
-            ctx.moveTo(0, height - y)   // From Y-axis (left)
-            ctx.lineTo(x-15, height - y)   // To current X
+            ctx.moveTo(0, height - y * scaleY)
+            ctx.lineTo(x * scaleX - 15, height - y * scaleY)
             ctx.stroke()
 
             // Draw Max Height level line and label
@@ -151,8 +155,8 @@ export default function Canvas({ projectileParams, simulationState, missileImage
                     ctx.strokeStyle = 'priamry'
                     ctx.lineWidth = 2
                     ctx.beginPath()
-                    ctx.moveTo(x+20, height - maxPoint.y)
-                    ctx.lineTo(width, height - maxPoint.y)
+                    ctx.moveTo(x * scaleX + 20, height - maxPoint.y * scaleY)
+                    ctx.lineTo(width, height - maxPoint.y * scaleY)
                     ctx.stroke()
                     ctx.setLineDash([])
                     ctx.fillStyle = 'primary'
@@ -160,15 +164,11 @@ export default function Canvas({ projectileParams, simulationState, missileImage
                     ctx.fillText(
                         `MaxHeight (${maxPoint.y.toFixed(1)} m)`,
                         width - 180,
-                        height - maxPoint.y - 10
+                        height - maxPoint.y * scaleY - 10
                     )
                     ctx.restore()
                 }
             }
-
-
-
-              
 
             // HUD panel
             const v = Math.sqrt(vx ** 2 + vy ** 2)
@@ -198,7 +198,7 @@ export default function Canvas({ projectileParams, simulationState, missileImage
 
         animationFrameId = requestAnimationFrame(draw)
         return () => cancelAnimationFrame(animationFrameId)
-    }, [simulationState, projectileParams])
+    }, [simulationState, projectileParams, scaleX, scaleY, maxWorldRange, maxWorldHeight])
 
     return (
         <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl border border-slate-700 bg-slate-800">
