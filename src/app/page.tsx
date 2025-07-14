@@ -4,31 +4,7 @@ import { useEffect, useState } from "react"
 import { useSimulation } from "@/hooks/useSimulation"
 import Canvas from "@/components/simulation/Canvas"
 
-  // Estimate max range and height for given params (ignoring air resistance for simplicity)
-  function estimateMaxRangeAndHeight(params: {
-    initialVelocity: number;
-    angle: number;
-    mass: number;
-    airResistance: boolean;
-    dragCoefficient?: number;
-    windSpeed?: number;
-    windDirection?: number;
-  }) {
-    const g = 9.81;
-    const angleRad = (params.angle * Math.PI) / 180;
-    const v0 = params.initialVelocity;
-    // No air resistance (simple physics)
-    const maxHeight = (v0 * Math.sin(angleRad)) ** 2 / (2 * g);
-    const range = (v0 ** 2 * Math.sin(2 * angleRad)) / g;
-    // If air resistance, just return a bit less (for now, can be improved)
-    if (params.airResistance) {
-      return {
-        maxHeight: maxHeight * 0.7,
-        range: range * 0.7,
-      };
-    }
-    return { maxHeight, range };
-  }
+
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
@@ -38,7 +14,7 @@ import { TbRocketOff } from "react-icons/tb";
 
 export default function HomePage() {
   const { simulationState, startSimulation, stopSimulation, updateParams, params } = useSimulation()
-
+  const [zoom, setZoom] = useState(1);
   const [startState, setStartState] = useState(false)
   const [formValues, setFormValues] = useState({
     initialVelocity: params.initialVelocity || 20,
@@ -88,7 +64,7 @@ export default function HomePage() {
     setFormValues((prev) => ({
       ...prev,
       [name]: value[0],
-    })) 
+    }))
   }
 
   const handleSwitchChange = (checked: boolean) => {
@@ -251,29 +227,46 @@ export default function HomePage() {
               <label className="text-white font-medium">Air resistance</label>
               <Switch checked={formValues.airResistance} onCheckedChange={handleSwitchChange} />
             </div>
+            <hr />
+            {/* Zoom out */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-white font-medium">Zoom Out</label>
+                <span className="text-white">-{zoom} x</span>
+              </div>
+              <Slider
+                value={[zoom]}
+                onValueChange={(value) => setZoom(value[0])}
+                max={100}
+                min={0}
+                step={10}
+
+                className="w-full"
+              />
+            </div>
 
             {/* Launch Button */}
             <Button
               onClick={startState ? handleStop : handleLaunch}
               className="w-full bg-primary text-white font-semibold py-3 text-lg"
             >
-              
-               {startState ? <TbRocketOff/> : <LiaRocketSolid/> }
+
+              {startState ? <TbRocketOff /> : <LiaRocketSolid />}
               {startState ? "Stop" : "Launch"}
             </Button>
           </CardContent>
         </Card>
 
         {/* Simulation Canvas */}
-       
-          <Canvas
-            simulationState={simulationState}
-            projectileParams={params}
-            missileImageUrl="/torpedo.png"
-            maxWorldHeight={Math.max(estimateMaxRangeAndHeight(formValues).maxHeight, 500)}
-            maxWorldRange={Math.max(estimateMaxRangeAndHeight(formValues).range, 1100)}
-          />
-    
+
+        <Canvas
+          simulationState={simulationState}
+          projectileParams={params}
+          missileImageUrl="/torpedo.png"
+          maxWorldHeight={Math.max(zoom * 500, 500)}
+          maxWorldRange={Math.max(zoom * 1100, 1100)}
+        />
+
 
         {/* Results Panel */}
         <Card className="bg-slate-800 border-slate-700">
