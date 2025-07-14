@@ -21,7 +21,7 @@ export function useSimulation() {
     const [params, setParams] = useState<ProjectileParams>(
         {
         initialVelocity: 100,
-        angle: 50,
+        angle: 45,
         mass: 5,
         airResistance: false,
         dragCoefficient: 0.02,

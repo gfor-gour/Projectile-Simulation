@@ -111,6 +111,24 @@ export default function HomePage() {
             <CardTitle className="text-white text-xl">Controls</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+           
+            {/* Zoom out */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-white font-medium">Zoom Out</label>
+                <span className="text-white">-{zoom} x</span>
+              </div>
+              <Slider
+                value={[zoom]}
+                onValueChange={(value) => setZoom(value[0])}
+                max={100}
+                min={0}
+                step={10}
+
+                className="w-full"
+              />
+            </div>
+             <hr />
             {/* Initial Speed */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
@@ -120,7 +138,7 @@ export default function HomePage() {
               <Slider
                 value={[formValues.initialVelocity]}
                 onValueChange={(value) => handleSliderChange("initialVelocity", value)}
-                max={1000}
+                max={2000}
                 min={1}
                 step={1}
                 className="w-full"
@@ -152,7 +170,7 @@ export default function HomePage() {
               <Slider
                 value={[formValues.mass]}
                 onValueChange={(value) => handleSliderChange("mass", value)}
-                max={200}
+                max={500}
                 min={0.1}
                 step={0.1}
                 className="w-full"
@@ -227,23 +245,7 @@ export default function HomePage() {
               <label className="text-white font-medium">Air resistance</label>
               <Switch checked={formValues.airResistance} onCheckedChange={handleSwitchChange} />
             </div>
-            <hr />
-            {/* Zoom out */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <label className="text-white font-medium">Zoom Out</label>
-                <span className="text-white">-{zoom} x</span>
-              </div>
-              <Slider
-                value={[zoom]}
-                onValueChange={(value) => setZoom(value[0])}
-                max={100}
-                min={0}
-                step={10}
-
-                className="w-full"
-              />
-            </div>
+            
 
             {/* Launch Button */}
             <Button
