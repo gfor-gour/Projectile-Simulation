@@ -24,12 +24,39 @@ export default function HomePage() {
     windDirection: params.windDirection || 0,
   })
 
-  // Mock results - replace with actual simulation results
+  // Results state, updated after each simulation
   const [results, setResults] = useState({
-    timeOfFlight: 2.88,
-    maximumHeight: 10.2,
-    range: 40.8,
+    timeOfFlight: 0,
+    maximumHeight: 0,
+    range: 0,
   })
+  // Update results after landing
+  useEffect(() => {
+    if (!startState) return;
+    // Check if projectile has landed
+    if (simulationState.position.y < 0 && simulationState.trajectory.length > 1) {
+      const traj = simulationState.trajectory;
+      // Time of flight: last t where y >= 0 (linear interpolation for better accuracy)
+      let timeOfFlight = traj[traj.length - 1].t;
+      let range = traj[traj.length - 1].x;
+      // Interpolate for more accurate landing time and range
+      for (let i = traj.length - 2; i >= 0; i--) {
+        if (traj[i].y >= 0) {
+          const t1 = traj[i].t, t2 = traj[i + 1].t;
+          const y1 = traj[i].y, y2 = traj[i + 1].y;
+          const x1 = traj[i].x, x2 = traj[i + 1].x;
+          const frac = y1 / (y1 - y2);
+          timeOfFlight = t1 + frac * (t2 - t1);
+          range = x1 + frac * (x2 - x1);
+          break;
+        }
+      }
+      // Maximum height
+      const maximumHeight = Math.max(...traj.map(p => p.y));
+      setResults({ timeOfFlight: Number(timeOfFlight.toFixed(2)), maximumHeight: Number(maximumHeight.toFixed(2)), range: Number(range.toFixed(2)) });
+      setStartState(false); // Stop simulation after landing
+    }
+  }, [simulationState, startState]);
 
   const handleSliderChange = (name: string, value: number[]) => {
     setFormValues((prev) => ({
