@@ -3,32 +3,7 @@
 import { useEffect, useState } from "react"
 import { useSimulation } from "@/hooks/useSimulation"
 import Canvas from "@/components/simulation/Canvas"
-
-// Estimate max range and height for given params (ignoring air resistance for simplicity)
-function estimateMaxRangeAndHeight(params: {
-  initialVelocity: number;
-  angle: number;
-  mass: number;
-  airResistance: boolean;
-  dragCoefficient?: number;
-  windSpeed?: number;
-  windDirection?: number;
-}) {
-  const g = 9.81;
-  const angleRad = (params.angle * Math.PI) / 180;
-  const v0 = params.initialVelocity;
-  // No air resistance (simple physics)
-  const maxHeight = (v0 * Math.sin(angleRad)) ** 2 / (2 * g);
-  const range = (v0 ** 2 * Math.sin(2 * angleRad)) / g;
-  // If air resistance, just return a bit less (for now, can be improved)
-  if (params.airResistance) {
-    return {
-      maxHeight: maxHeight * 0.7,
-      range: range * 0.7,
-    };
-  }
-  return { maxHeight, range };
-}
+import { estimateTrajectoryWithAirResistance } from "@/lib/physics/airResistance"
 
 
 import { Button } from "@/components/ui/button"
@@ -275,8 +250,8 @@ export default function HomePage() {
           simulationState={simulationState}
           projectileParams={params}
           missileImageUrl="/torpedo.png"
-          maxWorldHeight={Math.max(estimateMaxRangeAndHeight(formValues).maxHeight, 500)}
-          maxWorldRange={Math.max(estimateMaxRangeAndHeight(formValues).range, 1100)}
+          maxWorldHeight={Math.max(estimateTrajectoryWithAirResistance(formValues).maxHeight, 500)}
+          maxWorldRange={Math.max(estimateTrajectoryWithAirResistance(formValues).range, 1100)}
         />
 
 
