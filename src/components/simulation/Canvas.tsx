@@ -28,7 +28,7 @@ export default function Canvas({ projectileParams, simulationState, missileImage
         }
     }, [missileImageUrl])
 
-    // Dynamic scaling
+    // Dynamic scaling based on maxWorldRange and maxWorldHeight
     const scaleX = width / maxWorldRange;
     const scaleY = height / maxWorldHeight;
 
@@ -47,7 +47,7 @@ export default function Canvas({ projectileParams, simulationState, missileImage
         ctx.fillRect(0, 0, width, height)
 
 
-        // Grid lines (every 100m in world coordinates)
+        // Grid lines (every 100m in world coordinates, scaled)
         ctx.strokeStyle = '#334155' // slate-700
         ctx.lineWidth = 1
         ctx.setLineDash([2, 6])

@@ -4,6 +4,32 @@ import { useEffect, useState } from "react"
 import { useSimulation } from "@/hooks/useSimulation"
 import Canvas from "@/components/simulation/Canvas"
 
+// Estimate max range and height for given params (ignoring air resistance for simplicity)
+function estimateMaxRangeAndHeight(params: {
+  initialVelocity: number;
+  angle: number;
+  mass: number;
+  airResistance: boolean;
+  dragCoefficient?: number;
+  windSpeed?: number;
+  windDirection?: number;
+}) {
+  const g = 9.81;
+  const angleRad = (params.angle * Math.PI) / 180;
+  const v0 = params.initialVelocity;
+  // No air resistance (simple physics)
+  const maxHeight = (v0 * Math.sin(angleRad)) ** 2 / (2 * g);
+  const range = (v0 ** 2 * Math.sin(2 * angleRad)) / g;
+  // If air resistance, just return a bit less (for now, can be improved)
+  if (params.airResistance) {
+    return {
+      maxHeight: maxHeight * 0.7,
+      range: range * 0.7,
+    };
+  }
+  return { maxHeight, range };
+}
+
 
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
@@ -14,7 +40,6 @@ import { TbRocketOff } from "react-icons/tb";
 
 export default function HomePage() {
   const { simulationState, startSimulation, stopSimulation, updateParams, params } = useSimulation()
-  const [zoom, setZoom] = useState(1);
   const [startState, setStartState] = useState(false)
   const [formValues, setFormValues] = useState({
     initialVelocity: params.initialVelocity || 20,
@@ -112,22 +137,7 @@ export default function HomePage() {
           </CardHeader>
           <CardContent className="space-y-6">
            
-            {/* Zoom out */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <label className="text-white font-medium">Zoom Out</label>
-                <span className="text-white">-{zoom} x</span>
-              </div>
-              <Slider
-                value={[zoom]}
-                onValueChange={(value) => setZoom(value[0])}
-                max={100}
-                min={0}
-                step={10}
 
-                className="w-full"
-              />
-            </div>
              <hr />
             {/* Initial Speed */}
             <div className="space-y-3">
@@ -265,8 +275,8 @@ export default function HomePage() {
           simulationState={simulationState}
           projectileParams={params}
           missileImageUrl="/torpedo.png"
-          maxWorldHeight={Math.max(zoom * 500, 500)}
-          maxWorldRange={Math.max(zoom * 1100, 1100)}
+          maxWorldHeight={Math.max(estimateMaxRangeAndHeight(formValues).maxHeight, 500)}
+          maxWorldRange={Math.max(estimateMaxRangeAndHeight(formValues).range, 1100)}
         />
 
 
