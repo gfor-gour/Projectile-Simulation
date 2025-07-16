@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useSimulation } from "@/hooks/useSimulation"
 import Canvas from "@/components/simulation/Canvas"
+import PlotVisualization from "@/components/simulation/PlotVisualization"
 import { estimateTrajectoryWithAirResistance } from "@/lib/physics/airResistance"
 
 
@@ -246,13 +247,16 @@ export default function HomePage() {
 
         {/* Simulation Canvas */}
 
-        <Canvas
-          simulationState={simulationState}
-          projectileParams={params}
-          missileImageUrl="/torpedo.png"
-          maxWorldHeight={Math.max(estimateTrajectoryWithAirResistance(formValues).maxHeight, 500)}
-          maxWorldRange={Math.max(estimateTrajectoryWithAirResistance(formValues).range, 1100)}
-        />
+        <div className="space-y-6">
+          <Canvas
+            simulationState={simulationState}
+            projectileParams={params}
+            missileImageUrl="/torpedo.png"
+            maxWorldHeight={Math.max(estimateTrajectoryWithAirResistance(formValues).maxHeight, 500)}
+            maxWorldRange={Math.max(estimateTrajectoryWithAirResistance(formValues).range, 1100)}
+          />
+          <PlotVisualization simulationState={simulationState} maxPoints={150} />
+        </div>
 
 
         {/* Results Panel */}
