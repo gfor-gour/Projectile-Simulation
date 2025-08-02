@@ -24,7 +24,7 @@ export function useSimulation() {
         angle: 45,
         mass: 5,
         airResistance: false,
-        dragCoefficient: 0.02,
+        dragCoefficient: 0.47,  //  Cd is around 0.47 for spherical objects
         windSpeed: 50,
         windDirection: 180,  
         

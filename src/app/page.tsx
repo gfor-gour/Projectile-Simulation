@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useSimulation } from "@/hooks/useSimulation"
 import Canvas from "@/components/simulation/Canvas"
 import PlotVisualization from "@/components/simulation/PlotVisualization"
-import { estimateTrajectoryWithAirResistance } from "@/lib/physics/airResistance"
+
 
 
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,8 @@ export default function HomePage() {
     windSpeed: params.windSpeed || 0,
     windDirection: params.windDirection || 0,
   })
+
+  const [zoom, setZoom] = useState(1)
 
   // Results state, updated after each simulation
   const [results, setResults] = useState({
@@ -112,9 +114,24 @@ export default function HomePage() {
             <CardTitle className="text-white text-xl">Controls</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-           
+            {/* Zoom out */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-white font-medium">Zoom Out</label>
+                <span className="text-white">-{zoom} x</span>
+              </div>
+              <Slider
+                value={[zoom]}
+                onValueChange={(value) => setZoom(value[0])}
+                max={100}
+                min={0}
+                step={10}
 
-             <hr />
+                className="w-full"
+              />
+            </div>
+
+            <hr />
             {/* Initial Speed */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
@@ -231,7 +248,7 @@ export default function HomePage() {
               <label className="text-white font-medium">Air resistance</label>
               <Switch checked={formValues.airResistance} onCheckedChange={handleSwitchChange} />
             </div>
-            
+
 
             {/* Launch Button */}
             <Button
@@ -252,9 +269,10 @@ export default function HomePage() {
             simulationState={simulationState}
             projectileParams={params}
             missileImageUrl="/torpedo.png"
-            maxWorldHeight={Math.max(estimateTrajectoryWithAirResistance(formValues).maxHeight, 500)}
-            maxWorldRange={Math.max(estimateTrajectoryWithAirResistance(formValues).range, 1100)}
+            maxWorldHeight={Math.max(zoom * 500, 500)}
+            maxWorldRange={Math.max(zoom * 500, 1100)}
           />
+
           <PlotVisualization simulationState={simulationState} maxPoints={150} />
         </div>
 
