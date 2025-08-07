@@ -53,9 +53,59 @@ export default function Canvas({ projectileParams, simulationState, missileImage
         ctx.setLineDash([2, 6])
         ctx.font = '12px Inter'
         ctx.fillStyle = '#94a3b8' // slate-400
+        // Calculate dynamic offsets to keep the trajectory always visible in the canvas
+        let offsetX = 0
+        let offsetY = 0
+        if (simulationState.trajectory.length > 0) {
+            const last = simulationState.trajectory[simulationState.trajectory.length - 1]
+            const margin = 60 // px margin from edge
+            const pxX = last.x * scaleX
+            const pxY = height - last.y * scaleY
 
-        for (let gx = 0; gx <= maxWorldRange; gx += 100) {
-            const sx = gx * scaleX;
+            // Adjust X offset if projectile is near the right edge
+            if (pxX > width - margin) {
+            offsetX = pxX - (width - margin)
+            } else if (pxX < margin) {
+            offsetX = pxX - margin
+            }
+
+            // Adjust Y offset if projectile is near the top edge
+            if (pxY < margin) {
+            offsetY = pxY - margin
+            } else if (pxY > height - margin) {
+            offsetY = pxY - (height - margin)
+            }
+        }
+
+        // Draw X (ground) and Y (vertical) axes at (0,0) with sky color
+        ctx.save()
+        ctx.setLineDash([]) // Ensure solid line (not dashed)
+        ctx.strokeStyle = '#38bdf8' // sky-400
+        ctx.lineWidth = 2
+
+        // Y axis (x=0)
+        ctx.beginPath()
+        ctx.moveTo(0 * scaleX - offsetX, 0)
+        ctx.lineTo(0 * scaleX - offsetX, height)
+        ctx.stroke()
+
+        // X axis (y=0)
+        ctx.beginPath()
+        ctx.moveTo(0, height - 0 * scaleY - offsetY)
+        ctx.lineTo(width, height - 0 * scaleY - offsetY)
+        ctx.stroke()
+
+        ctx.restore()
+
+        // Determine min/max X and Y for grid lines (including negatives)
+        const minX = Math.min(0, ...simulationState.trajectory.map(p => p.x), -1000)
+        const maxX = Math.max(maxWorldRange, ...simulationState.trajectory.map(p => p.x), 1000)
+        const minY = Math.min(0, ...simulationState.trajectory.map(p => p.y), -1000)
+        const maxY = Math.max(maxWorldHeight, ...simulationState.trajectory.map(p => p.y), 1000)
+
+        // Draw vertical grid lines (every 100m, including negatives)
+        for (let gx = Math.floor(minX / 100) * 100; gx <= maxX; gx += 100) {
+            const sx = gx * scaleX - offsetX
             ctx.beginPath()
             ctx.moveTo(sx, 0)
             ctx.lineTo(sx, height)
@@ -63,8 +113,9 @@ export default function Canvas({ projectileParams, simulationState, missileImage
             ctx.fillText(`${gx}m`, sx + 2, height - 5)
         }
 
-        for (let gy = 0; gy <= maxWorldHeight; gy += 100) {
-            const sy = height - gy * scaleY;
+        // Draw horizontal grid lines (every 100m, only for y >= 0)
+        for (let gy = 0; gy <= maxY; gy += 100) {
+            const sy = height - gy * scaleY - offsetY
             ctx.beginPath()
             ctx.moveTo(0, sy)
             ctx.lineTo(width, sy)
@@ -75,16 +126,16 @@ export default function Canvas({ projectileParams, simulationState, missileImage
         ctx.setLineDash([])
 
         // Trajectory
-        ctx.beginPath()
-        if (simulationState.trajectory.length > 0) {
-            ctx.moveTo(
-                simulationState.trajectory[0].x * scaleX,
-                height - simulationState.trajectory[0].y * scaleY
-            )
-            simulationState.trajectory.forEach(({ x, y }) => {
-                ctx.lineTo(x * scaleX, height - y * scaleY)
-            })
-        }
+        // ctx.beginPath()
+        // if (simulationState.trajectory.length > 0) {
+        //     ctx.moveTo(
+        //         simulationState.trajectory[0].x * scaleX,
+        //         height - simulationState.trajectory[0].y * scaleY
+        //     )
+        //     simulationState.trajectory.forEach(({ x, y }) => {
+        //         ctx.lineTo(x * scaleX, height - y * scaleY)
+        //     })
+        // }
 
         ctx.strokeStyle = '#facc15' // yellow-400
         ctx.lineWidth = 3
@@ -109,10 +160,52 @@ export default function Canvas({ projectileParams, simulationState, missileImage
             let angle = (projectileParams.angle * Math.PI) / 180
             if (vx !== 0 || vy !== 0) angle = Math.atan2(-vy, vx)
 
+            // Calculate dynamic offsets to follow the projectile with the grid
+            let offsetX = 0
+            let offsetY = 0
+            const margin = 60 // px margin from edge
+            const pxX = x * scaleX
+            const pxY = height - y * scaleY
+
+            // Adjust X offset if projectile is near the right or left edge
+            if (pxX > width - margin) {
+                offsetX = pxX - (width - margin)
+            } else if (pxX < margin) {
+                offsetX = pxX - margin
+            }
+
+            // Adjust Y offset if projectile is near the top or bottom edge
+            if (pxY < margin) {
+                offsetY = pxY - margin
+            } else if (pxY > height - margin) {
+                offsetY = pxY - (height - margin)
+            }
+
+            // Draw trajectory line following the same offset as the missile
+            ctx.save()
+            ctx.beginPath()
+            const trajectory = simulationState.trajectory
+            if (trajectory.length > 0) {
+                ctx.moveTo(
+                    trajectory[0].x * scaleX - offsetX,
+                    height - trajectory[0].y * scaleY - offsetY
+                )
+                trajectory.forEach(({ x: tx, y: ty }) => {
+                    ctx.lineTo(
+                        tx * scaleX - offsetX,
+                        height - ty * scaleY - offsetY
+                    )
+                })
+            }
+            ctx.strokeStyle = '#facc15' // yellow-400
+            ctx.lineWidth = 3
+            ctx.stroke()
+            ctx.restore()
+
             // Missile
             if (imageRef.current) {
                 ctx.save()
-                ctx.translate(x * scaleX, height - y * scaleY)
+                ctx.translate(x * scaleX - offsetX, height - y * scaleY - offsetY)
                 ctx.rotate(angle)
                 ctx.shadowColor = '#facc15'
                 ctx.shadowBlur = 8
@@ -121,7 +214,7 @@ export default function Canvas({ projectileParams, simulationState, missileImage
             } else {
                 ctx.fillStyle = '#f87171' // red-400
                 ctx.beginPath()
-                ctx.arc(x * scaleX, height - y * scaleY, missileSize / 2, 0, 2 * Math.PI)
+                ctx.arc(x * scaleX - offsetX, height - y * scaleY - offsetY, missileSize / 2, 0, 2 * Math.PI)
                 ctx.fill()
             }
 
@@ -129,42 +222,43 @@ export default function Canvas({ projectileParams, simulationState, missileImage
             ctx.save()
             ctx.lineWidth = 2
 
-            // Vx (green)
-            ctx.strokeStyle = '#4ade80' // green-400
-            ctx.beginPath()
-            ctx.moveTo(x * scaleX, height - y * scaleY + 15)
-            ctx.lineTo(x * scaleX, height)
-            ctx.stroke()
+            // // Vx (green)
+            // ctx.strokeStyle = '#4ade80' // green-400
+            // ctx.beginPath()
+            // ctx.moveTo(x * scaleX - offsetX, height - y * scaleY - offsetY + 15)
+            // ctx.lineTo(x * scaleX - offsetX, height - offsetY)
+            // ctx.stroke()
 
-            // Vy (blue)
-            ctx.strokeStyle = '#60a5fa' // blue 
-            ctx.beginPath()
-            ctx.moveTo(0, height - y * scaleY)
-            ctx.lineTo(x * scaleX - 15, height - y * scaleY)
-            ctx.stroke()
+            // // Vy (blue)
+            // ctx.strokeStyle = '#60a5fa' // blue 
+            // ctx.beginPath()
+            // ctx.moveTo(-offsetX, height - y * scaleY - offsetY)
+            // ctx.lineTo(x * scaleX - offsetX - 15, height - y * scaleY - offsetY)
+            // ctx.stroke()
+
+            // ctx.restore()
 
             // Draw Max Height level line and label
-            const trajectory = simulationState.trajectory
             if (trajectory && trajectory.length > 0 ) {
                 // Find the max height point
                 const maxPoint = trajectory.reduce((max, p) => (p.y > max.y ? p : max), trajectory[0])
                 // Only draw if the projectile is at or past max height
-                if (Math.abs(y - maxPoint.y) < 1 && y!=0) {
+                if (Math.abs(y - maxPoint.y) < 1 && y !== 0) {
                     ctx.save()
                     ctx.setLineDash([8, 6])
-                    ctx.strokeStyle = 'priamry'
+                    ctx.strokeStyle = '#facc15'
                     ctx.lineWidth = 2
                     ctx.beginPath()
-                    ctx.moveTo(x * scaleX + 20, height - maxPoint.y * scaleY)
-                    ctx.lineTo(width, height - maxPoint.y * scaleY)
+                    ctx.moveTo(x * scaleX - offsetX + 20, height - maxPoint.y * scaleY - offsetY)
+                    ctx.lineTo(width, height - maxPoint.y * scaleY - offsetY)
                     ctx.stroke()
                     ctx.setLineDash([])
-                    ctx.fillStyle = 'primary'
+                    ctx.fillStyle = '#facc15'
                     ctx.font = 'bold 16px Inter'
                     ctx.fillText(
                         `MaxHeight (${maxPoint.y.toFixed(1)} m)`,
                         width - 180,
-                        height - maxPoint.y * scaleY - 10
+                        height - maxPoint.y * scaleY - offsetY - 10
                     )
                     ctx.restore()
                 }

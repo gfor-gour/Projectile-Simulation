@@ -4,12 +4,10 @@ import { useEffect, useState } from "react"
 import { useSimulation } from "@/hooks/useSimulation"
 import Canvas from "@/components/simulation/Canvas"
 import PlotVisualization from "@/components/simulation/PlotVisualization"
-
-
-
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
+import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LiaRocketSolid } from "react-icons/lia";
 import { TbRocketOff } from "react-icons/tb";
@@ -62,6 +60,13 @@ export default function HomePage() {
       setStartState(false); // Stop simulation after landing
     }
   }, [simulationState, startState]);
+
+  const handleInputChange = (name: string, value: string | number) => {
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: typeof value === "string" ? Number(value) : value,
+    }))
+  }
 
   const handleSliderChange = (name: string, value: number[]) => {
     setFormValues((prev) => ({
@@ -126,7 +131,6 @@ export default function HomePage() {
                 max={100}
                 min={0}
                 step={10}
-
                 className="w-full"
               />
             </div>
@@ -138,12 +142,13 @@ export default function HomePage() {
                 <label className="text-white font-medium">Initial speed</label>
                 <span className="text-white">{formValues.initialVelocity} m/s</span>
               </div>
-              <Slider
-                value={[formValues.initialVelocity]}
-                onValueChange={(value) => handleSliderChange("initialVelocity", value)}
-                max={2000}
+              <Input
+                type="number"
+                value={formValues.initialVelocity}
                 min={1}
+                max={2000}
                 step={1}
+                onChange={e => handleInputChange("initialVelocity", e.target.value)}
                 className="w-full"
               />
             </div>
@@ -154,12 +159,13 @@ export default function HomePage() {
                 <label className="text-white font-medium">Launch angle</label>
                 <span className="text-white">{formValues.angle}°</span>
               </div>
-              <Slider
-                value={[formValues.angle]}
-                onValueChange={(value) => handleSliderChange("angle", value)}
-                max={90}
+              <Input
+                type="number"
+                value={formValues.angle}
                 min={0}
+                max={90}
                 step={1}
+                onChange={e => handleInputChange("angle", e.target.value)}
                 className="w-full"
               />
             </div>
@@ -170,12 +176,13 @@ export default function HomePage() {
                 <label className="text-white font-medium">Mass</label>
                 <span className="text-white">{formValues.mass} kg</span>
               </div>
-              <Slider
-                value={[formValues.mass]}
-                onValueChange={(value) => handleSliderChange("mass", value)}
-                max={500}
+              <Input
+                type="number"
+                value={formValues.mass}
                 min={0.1}
+                max={500}
                 step={0.1}
+                onChange={e => handleInputChange("mass", e.target.value)}
                 className="w-full"
               />
             </div>
@@ -203,12 +210,13 @@ export default function HomePage() {
                     <label className="text-white font-medium">Wind Speed</label>
                     <span className="text-white">{formValues.windSpeed} m/s</span>
                   </div>
-                  <Slider
-                    value={[formValues.windSpeed]}
-                    onValueChange={(value) => handleSliderChange("windSpeed", value)}
-                    max={500}
+                  <Input
+                    type="number"
+                    value={formValues.windSpeed}
                     min={0}
+                    max={500}
                     step={1}
+                    onChange={e => handleInputChange("windSpeed", e.target.value)}
                     className="w-full"
                   />
                 </div>
@@ -217,28 +225,60 @@ export default function HomePage() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <label className="text-white font-medium">Wind Direction</label>
-                    <span className="text-white">
-                      {formValues.windDirection === 0
-                        ? "Left to Right (0°)"
-                        : "Right to Left (180°)"}
+                    
+                  </div>
+
+                    <div className="flex items-center justify-between gap-1 mt-2">
+                    <span
+                      className={`text-sm font-medium transition-colors ${
+                      formValues.windDirection === 180
+                        ? "text-primary"
+                        : "text-gray-400"
+                      }`}
+                    >
+                      ← Left 180°
                     </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={formValues.windDirection === 0 ? "default" : "outline"}
-                      className="w-1/2"
-                      onClick={() => handleSliderChange("windDirection", [0])}
+                    <button
+                      type="button"
+                      aria-label="Toggle wind direction"
+                      onClick={() =>
+                      handleInputChange(
+                        "windDirection",
+                        formValues.windDirection === 0 ? 180 : 0
+                      )
+                      }
+                      className={`flex items-center justify-center  bg-primary border-primary shadow-lg w-12 h-12 rounded-full border-2 transition-all duration-200
+                      `}
                     >
-                      Left to Right
-                    </Button>
-                    <Button
-                      variant={formValues.windDirection === 180 ? "default" : "outline"}
-                      className="w-1/2"
-                      onClick={() => handleSliderChange("windDirection", [180])}
+                      <svg
+                      width="32"
+                      height="32"
+                      viewBox="0 0 32 32"
+                      className={`transition-transform duration-300 ${
+                        formValues.windDirection === 180 ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      >
+                      <path
+                        d="M6 16h20M18 10l8 6-8 6"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      </svg>
+                    </button>
+                    <span
+                      className={`text-sm font-medium transition-colors ${
+                      formValues.windDirection === 0
+                        ? "text-primary"
+                        : "text-gray-400"
+                      }`}
                     >
-                      Right to Left
-                    </Button>
-                  </div>
+                      Right → 0°
+                    </span>
+                    </div>
                 </div>
               </>
             )}
@@ -249,13 +289,11 @@ export default function HomePage() {
               <Switch checked={formValues.airResistance} onCheckedChange={handleSwitchChange} />
             </div>
 
-
             {/* Launch Button */}
             <Button
               onClick={startState ? handleStop : handleLaunch}
               className="w-full bg-primary text-white font-semibold py-3 text-lg"
             >
-
               {startState ? <TbRocketOff /> : <LiaRocketSolid />}
               {startState ? "Stop" : "Launch"}
             </Button>
@@ -263,7 +301,6 @@ export default function HomePage() {
         </Card>
 
         {/* Simulation Canvas */}
-
         <div className="space-y-6">
           <Canvas
             simulationState={simulationState}
@@ -275,7 +312,6 @@ export default function HomePage() {
 
           <PlotVisualization simulationState={simulationState} maxPoints={150} />
         </div>
-
 
         {/* Results Panel */}
         <Card className="bg-slate-800 border-slate-700">
