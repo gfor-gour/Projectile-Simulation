@@ -27,8 +27,7 @@ export function useSimulation() {
         dragCoefficient: 0.47,  //  Cd is around 0.47 for spherical objects
         windSpeed: 50,
         windDirection: 180,  
-        
-          // e.g., headwind from right to left
+        targetPosition: { x: 500, y: 200 }, 
     }
 )
 
@@ -45,8 +44,11 @@ export function useSimulation() {
     const startSimulation = () => {
         const loop = () => {
             setSimulationState((prev) => {
-                if (prev.position.y < 0 && prev.time > 0.3) return prev
-                return simulateNextStep(prev, params)
+                if (prev.position.y < 0 && prev.time > 0.3) {
+                    return prev
+                } else {
+                    return simulateNextStep(prev, params)
+                }
             })
             animationRef.current = requestAnimationFrame(loop)
         }

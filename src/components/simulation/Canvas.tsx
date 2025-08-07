@@ -100,7 +100,6 @@ export default function Canvas({ projectileParams, simulationState, missileImage
         // Determine min/max X and Y for grid lines (including negatives)
         const minX = Math.min(0, ...simulationState.trajectory.map(p => p.x), -1000)
         const maxX = Math.max(maxWorldRange, ...simulationState.trajectory.map(p => p.x), 1000)
-        const minY = Math.min(0, ...simulationState.trajectory.map(p => p.y), -1000)
         const maxY = Math.max(maxWorldHeight, ...simulationState.trajectory.map(p => p.y), 1000)
 
         // Draw vertical grid lines (every 100m, including negatives)
@@ -125,23 +124,37 @@ export default function Canvas({ projectileParams, simulationState, missileImage
 
         ctx.setLineDash([])
 
-        // Trajectory
-        // ctx.beginPath()
-        // if (simulationState.trajectory.length > 0) {
-        //     ctx.moveTo(
-        //         simulationState.trajectory[0].x * scaleX,
-        //         height - simulationState.trajectory[0].y * scaleY
-        //     )
-        //     simulationState.trajectory.forEach(({ x, y }) => {
-        //         ctx.lineTo(x * scaleX, height - y * scaleY)
-        //     })
-        // }
+      
 
         ctx.strokeStyle = '#facc15' // yellow-400
         ctx.lineWidth = 3
         ctx.stroke()
     }, [simulationState.trajectory, maxWorldRange, maxWorldHeight, scaleX, scaleY])
 
+    // Draw a target on target position from projectileParams
+useEffect(() => {
+    if (projectileParams.airResistance==false && projectileParams.targetPosition) {
+        const canvas = staticCanvasRef.current
+        if (!canvas) return
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+
+        // Draw target if position exists
+        const targetPosition = projectileParams.targetPosition
+        if (!targetPosition) return
+        const targetX = targetPosition.x * scaleX
+        const targetY = height - targetPosition.y * scaleY
+
+        ctx.save()
+        ctx.strokeStyle = '#f87171' // red-400
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        ctx.arc(targetX, targetY, missileSize / 2, 0, 2 * Math.PI)
+        ctx.stroke()
+        ctx.restore()
+    }
+}, [projectileParams.airResistance, projectileParams.targetPosition, scaleX, scaleY, height])
+   
     // Animate missile
     useEffect(() => {
         const canvas = dynamicCanvasRef.current
